@@ -1,0 +1,40 @@
+services:
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+
+    container_name: student-frontend
+
+    ports:
+      - "5000:5000"
+
+    environment:
+      BACKEND_URL: http://backend:5001
+
+    depends_on:
+      - backend
+
+    networks:
+      - student-network
+
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+
+    container_name: student-backend
+
+    ports:
+      - "5001:5001"
+
+    networks:
+      - student-network
+
+
+networks:
+  student-network:
+    driver: bridge
+
