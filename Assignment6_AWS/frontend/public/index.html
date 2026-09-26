@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignment 6</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 80px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        #result {
+            margin-top: 30px;
+            font-size: 20px;
+        }
+
+        .section {
+            margin-top: 40px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Assignment 6 - AWS Deployment</h1>
+    <p>Express Frontend + Flask Backend</p>
+
+    <!-- BUTTON -->
+    <div class="section">
+        <h2>Test Backend Connection</h2>
+        <button onclick="getBackendData()">
+            Call Flask Backend
+        </button>
+    </div>
+
+    <!-- ================================= -->
+    <!-- NAME FORM -->
+    <!-- ================================= -->
+
+    <div class="section">
+        <h2>Send Name to Backend</h2>
+        <input
+            type="text"
+            id="name"
+            placeholder="Enter your name"
+        >
+        <br>
+        <button onclick="sendName()">
+            Send Name to Flask
+        </button>
+    </div>
+
+    <!-- Result -->
+    <div id="result"></div>
+
+    <script>
+        // ==========================================
+        // GET REQUEST
+        // ==========================================
+        async function getBackendData() {
+            try {
+                // Call Express
+                const response = await fetch("/api/backend-data");
+
+                // Convert response to JSON
+                const data = await response.json();
+
+                // Display Flask message
+                document.getElementById("result").innerText =
+                    data.message;
+            }
+
+            catch (error) {
+                document.getElementById("result").innerText =
+                    "Error connecting to backend";
+                console.error(error);
+            }
+        }
+
+        // ==========================================
+        // POST REQUEST
+        // ==========================================
+
+        async function sendName() {
+            // Get name from input box
+            const name = document.getElementById("name").value;
+
+            // Make sure user entered something
+            if (name === "") {
+                document.getElementById("result").innerText =
+                    "Please enter your name.";
+                return;
+            }
+
+            try {
+                // Send name to Express
+                const response = await fetch("/api/send-name", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        name: name
+                    })
+                });
+
+                // Get response from Express
+                const data = await response.json();
+
+                // Display Flask response
+                document.getElementById("result").innerText =
+                    data.message;
+            }
+
+            catch (error) {
+                document.getElementById("result").innerText =
+                    "Error sending name to backend";
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
