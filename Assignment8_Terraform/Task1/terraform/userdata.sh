@@ -14,7 +14,6 @@ touch "$DEBUG_LOG_FILE"
 chmod 644 "$LOG_FILE"
 chmod 644 "$DEBUG_LOG_FILE"
 
-
 # ============================================================
 # Redirect complete script output to DEBUG log
 # ============================================================

@@ -51,3 +51,8 @@ variable "key_pair_name" {
   type        = string
   default     = "Keypair-aws"
 }
+
+output "ec2_instance_public_ip" {
+  description = "Public IP address of the EC2 instance"
+  value       = aws_instance.Task1[0].public_ip
+}
