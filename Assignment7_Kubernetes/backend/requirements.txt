@@ -1,0 +1,8 @@
+flask
+pymongo
+dnspython
+python-dotenv
+requests
+jsonify
+
+#pip install -r requirements.txt

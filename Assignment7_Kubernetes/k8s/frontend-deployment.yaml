@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stud-info-frontend
+  labels:
+    app: stud-info-frontend
+
+spec:
+  replicas: 3
+
+  selector:
+    matchLabels:
+      app: stud-info-frontend
+
+  template:
+    metadata:
+      labels:
+        app: stud-info-frontend
+
+    spec:
+      containers:
+        - name: stud-info-frontend
+          image: lukky175/student_info_frontend:latest
+
+          ports:
+            - containerPort: 5000
+              name: frontend
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi

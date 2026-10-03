@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stud-info-backend
+  labels:
+    app: stud-info-backend
+
+spec:
+  replicas: 3
+
+  selector:
+    matchLabels:
+      app: stud-info-backend
+
+  template:
+    metadata:
+      labels:
+        app: stud-info-backend
+
+    spec:
+      containers:
+        - name: stud-info-backend
+          image: lukky175/student_info_backend:latest
+
+          ports:
+            - containerPort: 5001
+              name: backend
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+
+          env:
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: MONGO_URI
