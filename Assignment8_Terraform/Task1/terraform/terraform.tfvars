@@ -1,0 +1,9 @@
+vpc_cidr = "10.0.0.0/16"
+subnet_cidr = "10.0.1.0/24"
+security_group_name = "task1-security-group"
+express_port = 3000
+flask_port = 5000
+ssh_port = 22
+ec2_ami_id = "ami-01a00762f46d584a1"
+ec2_instance_type = "t3.small"
+key_pair_name = "Keypair-aws"

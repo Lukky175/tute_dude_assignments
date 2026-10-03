@@ -1,6 +1,5 @@
 resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
-
+  cidr_block = var.vpc_cidr
   tags = {
     Name = "task1-vpc"
   }
@@ -8,7 +7,7 @@ resource "aws_vpc" "main" {
 
 resource "aws_subnet" "main" {
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.1.0/24"
+  cidr_block              = var.subnet_cidr
   map_public_ip_on_launch = true
 
   tags = {
@@ -43,7 +42,7 @@ resource "aws_route_table_association" "main" {
 }
 
 resource "aws_security_group" "task1" {
-  name        = "task1-security-group"
+  name        = var.security_group_name
   description = "Security group for Task 1 Flask and Express application"
   vpc_id      = aws_vpc.main.id
 
@@ -55,8 +54,8 @@ resource "aws_security_group" "task1" {
 # Express frontend - port 3000
 resource "aws_security_group_rule" "express_3000" {
   type              = "ingress"
-  from_port         = 3000
-  to_port           = 3000
+  from_port         = var.express_port
+  to_port           = var.express_port
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.task1.id
@@ -65,8 +64,8 @@ resource "aws_security_group_rule" "express_3000" {
 # Flask backend - port 5000
 resource "aws_security_group_rule" "flask_5000" {
   type              = "ingress"
-  from_port         = 5000
-  to_port           = 5000
+  from_port         = var.flask_port
+  to_port           = var.flask_port
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.task1.id
@@ -75,8 +74,8 @@ resource "aws_security_group_rule" "flask_5000" {
 # SSH
 resource "aws_security_group_rule" "ssh" {
   type              = "ingress"
-  from_port         = 22
-  to_port           = 22
+  from_port         = var.ssh_port
+  to_port           = var.ssh_port
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.task1.id
@@ -93,10 +92,10 @@ resource "aws_security_group_rule" "egress" {
 }
 
 resource "aws_instance" "Task1" {
-  ami           = "ami-01a00762f46d584a1"
-  instance_type = "t3.small"
-  key_name = "Keypair-aws"
-  count = 1
+  ami           = var.ec2_ami_id
+  instance_type = var.ec2_instance_type
+  key_name      = var.key_pair_name
+  count         = 1
 
   subnet_id = aws_subnet.main.id
 

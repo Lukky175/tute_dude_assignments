@@ -6,3 +6,4 @@ node_modules
 .terraform.lock.hcl
 terraform.tfstate
 terraform.tfstate.backup
+mongo-secret.yaml
