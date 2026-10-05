@@ -1,0 +1,138 @@
+pipeline {
+    agent any
+
+    environment {
+        DEPLOY_DIR = '/home/ubuntu/Automated_CICD_Application_Repo/frontend'
+        NODE_BIN = '/usr/bin/node'
+        NPM_BIN = '/usr/bin/npm'
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Verify Frontend Files') {
+            steps {
+                sh '''
+                    set -e
+
+                    echo "Checking frontend files..."
+
+                    test -f frontend/server.js || {
+                        echo "ERROR: frontend/server.js not found"
+                        exit 1
+                    }
+
+                    test -f frontend/package.json || {
+                        echo "ERROR: frontend/package.json not found"
+                        exit 1
+                    }
+
+                    test -f frontend/package-lock.json || {
+                        echo "ERROR: frontend/package-lock.json not found"
+                        exit 1
+                    }
+
+                    echo "Frontend files verified."
+                '''
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh '''
+                    set -e
+
+                    echo "Installing Node.js dependencies..."
+
+                    cd frontend
+                    npm install
+
+                    echo "Dependencies installed successfully."
+                '''
+            }
+        }
+
+        stage('Syntax Check') {
+            steps {
+                sh '''
+                    set -e
+
+                    echo "Running JavaScript syntax check..."
+
+                    node --check frontend/server.js
+
+                    echo "JavaScript syntax check passed."
+                '''
+            }
+        }
+
+        stage('Application Check') {
+            steps {
+                sh '''
+                    set -e
+
+                    echo "Checking Express application..."
+
+                    cd frontend
+
+                    node -e "
+                    const app = require('./server.js');
+                    console.log('Express application loaded successfully');
+                    "
+
+                    echo "Application check passed."
+                '''
+            }
+        }
+
+        stage('Deploy & Restart Express') {
+            steps {
+                sh '''
+                    set -e
+
+                    echo "Deploying frontend..."
+
+                    sudo /usr/local/bin/deploy-express
+
+                    echo "Waiting for Express application..."
+                    sleep 3
+
+                    echo "Express deployment completed."
+                '''
+            }
+        }
+
+        stage('Deployment Health Check') {
+            steps {
+                sh '''
+                    set -e
+
+                    echo "Checking Express application on port 3000..."
+
+                    if ! curl -f --max-time 10 http://127.0.0.1:3000/; then
+                        echo "ERROR: Express health check failed."
+                        exit 1
+                    fi
+
+                    echo ""
+                    echo "Express deployment successful."
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Express CI/CD pipeline completed successfully.'
+        }
+
+        failure {
+            echo 'Express CI/CD pipeline failed.'
+        }
+    }
+}

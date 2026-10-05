@@ -2,12 +2,12 @@ pipeline {
     agent any
 
     environment {
-        DEPLOY_DIR = '/home/ubuntu/Automated_CICD_Application_Repo/backend'
         VENV_PYTHON = '/home/ubuntu/venv/bin/python'
         VENV_PIP = '/home/ubuntu/venv/bin/pip'
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -71,47 +71,28 @@ pipeline {
 
                     echo "Testing Flask application..."
 
-                    $VENV_PYTHON -c "import sys; sys.path.insert(0, 'backend'); import app; print('Flask application imported successfully')"
+                    $VENV_PYTHON -c "
+                    import sys
+                    sys.path.insert(0, 'backend')
+                    import app
+                    print('Flask application imported successfully')
+                    "
 
                     echo "Application test passed."
                 '''
             }
         }
 
-        stage('Deploy Backend') {
+        stage('Deploy & Restart Flask') {
             steps {
                 sh '''
                     set -e
 
                     echo "Deploying backend..."
 
-                    sudo -u ubuntu cp backend/app.py "$DEPLOY_DIR/app.py"
-                    sudo -u ubuntu cp backend/requirements.txt "$DEPLOY_DIR/requirements.txt"
+                    sudo /usr/local/bin/deploy-flask
 
-                    echo "Backend deployed successfully."
-                '''
-            }
-        }
-
-        stage('Restart Flask') {
-            steps {
-                sh '''
-                    set -e
-
-                    echo "Restarting Flask service..."
-
-                    sudo systemctl restart flask-app
-
-                    echo "Waiting for Flask service..."
-                    sleep 3
-
-                    if ! sudo systemctl is-active --quiet flask-app; then
-                        echo "ERROR: Flask service failed to start."
-                        sudo systemctl status flask-app --no-pager
-                        exit 1
-                    fi
-
-                    echo "Flask service is running."
+                    echo "Backend deployment completed successfully."
                 '''
             }
         }
@@ -141,7 +122,7 @@ pipeline {
         }
 
         failure {
-            echo 'Flask CI/CD pipeline failed. Application was not considered successfully deployed.'
+            echo 'Flask CI/CD pipeline failed.'
         }
     }
 }

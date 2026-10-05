@@ -7,7 +7,7 @@ students = []
 
 @app.route("/")
 def root():
-    return "Flask backend is running!"
+    return "Flask backend is running (Lukky)!"
 
 @app.route("/submit", methods=["POST"])
 def submit():
