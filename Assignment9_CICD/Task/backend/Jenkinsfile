@@ -1,0 +1,147 @@
+pipeline {
+    agent any
+
+    environment {
+        DEPLOY_DIR = '/home/ubuntu/Automated_CICD_Application_Repo/backend'
+        VENV_PYTHON = '/home/ubuntu/venv/bin/python'
+        VENV_PIP = '/home/ubuntu/venv/bin/pip'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Verify Backend Files') {
+            steps {
+                sh '''
+                    set -e
+
+                    echo "Checking backend files..."
+
+                    test -f backend/app.py || {
+                        echo "ERROR: backend/app.py not found"
+                        exit 1
+                    }
+
+                    test -f backend/requirements.txt || {
+                        echo "ERROR: backend/requirements.txt not found"
+                        exit 1
+                    }
+
+                    echo "Backend files verified."
+                '''
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh '''
+                    set -e
+
+                    echo "Installing Python dependencies..."
+
+                    $VENV_PIP install -r backend/requirements.txt
+
+                    echo "Dependencies installed successfully."
+                '''
+            }
+        }
+
+        stage('Syntax Check') {
+            steps {
+                sh '''
+                    set -e
+
+                    echo "Running Python syntax check..."
+
+                    $VENV_PYTHON -m py_compile backend/app.py
+
+                    echo "Python syntax check passed."
+                '''
+            }
+        }
+
+        stage('Test Application') {
+            steps {
+                sh '''
+                    set -e
+
+                    echo "Testing Flask application..."
+
+                    $VENV_PYTHON -c "import sys; sys.path.insert(0, 'backend'); import app; print('Flask application imported successfully')"
+
+                    echo "Application test passed."
+                '''
+            }
+        }
+
+        stage('Deploy Backend') {
+            steps {
+                sh '''
+                    set -e
+
+                    echo "Deploying backend..."
+
+                    sudo -u ubuntu cp backend/app.py "$DEPLOY_DIR/app.py"
+                    sudo -u ubuntu cp backend/requirements.txt "$DEPLOY_DIR/requirements.txt"
+
+                    echo "Backend deployed successfully."
+                '''
+            }
+        }
+
+        stage('Restart Flask') {
+            steps {
+                sh '''
+                    set -e
+
+                    echo "Restarting Flask service..."
+
+                    sudo systemctl restart flask-app
+
+                    echo "Waiting for Flask service..."
+                    sleep 3
+
+                    if ! sudo systemctl is-active --quiet flask-app; then
+                        echo "ERROR: Flask service failed to start."
+                        sudo systemctl status flask-app --no-pager
+                        exit 1
+                    fi
+
+                    echo "Flask service is running."
+                '''
+            }
+        }
+
+        stage('Deployment Health Check') {
+            steps {
+                sh '''
+                    set -e
+
+                    echo "Checking Flask application on port 5000..."
+
+                    if ! curl -f --max-time 10 http://127.0.0.1:5000/; then
+                        echo "ERROR: Flask health check failed."
+                        exit 1
+                    fi
+
+                    echo ""
+                    echo "Flask deployment successful."
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Flask CI/CD pipeline completed successfully.'
+        }
+
+        failure {
+            echo 'Flask CI/CD pipeline failed. Application was not considered successfully deployed.'
+        }
+    }
+}
